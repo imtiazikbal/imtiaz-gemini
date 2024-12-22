@@ -15,6 +15,22 @@ This method handles the document summarization process:
 - **API Interaction:** The method calls `GeminiApi::summarizeDocument()` to communicate with the Gemini API, which processes the file and returns a summary.
 - **Error Handling:** The method handles errors both from file validation and API communication, returning appropriate error messages.
 
+### Form Data
+
+The `/summarize` endpoint expects the following form data:
+
+1. **File**: The document to be summarized.
+   - **Field Name**: `file`
+   - **Type**: `file`
+   - **Allowed Types**: PDF, TXT, HTML, CSS, CSV, XML, RTF
+   - **Max File Size**: 10MB
+
+2. **Prompt**: The prompt to guide the summarization.
+   - **Field Name**: `prompt`
+   - **Type**: `string`
+   - **
+
+
 ### route
 ```php
 use Illuminate\Http\Request;
