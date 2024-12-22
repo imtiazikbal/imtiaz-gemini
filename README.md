@@ -94,6 +94,11 @@ public function summarizeDocument(Request $request)
 
 }
 ```
+License
+This repository is licensed under the MIT License.
+
+Copyright 2022 Imtiaz Ikbal. We are not affiliated with Gemini and don't give any guarantee.
+Contact: imtiaz.ikbal.com@gmail.com
 
 
 
