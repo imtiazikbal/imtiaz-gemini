@@ -47,7 +47,9 @@ return [
 ];
 ```
 ## Update env 
+```php
 GOOGLE_API_KEY=your_key
+```
 
 
 ##### Example of the summarizeDocument method:
