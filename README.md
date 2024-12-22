@@ -15,6 +15,25 @@ This method handles the document summarization process:
 - **API Interaction:** The method calls `GeminiApi::summarizeDocument()` to communicate with the Gemini API, which processes the file and returns a summary.
 - **Error Handling:** The method handles errors both from file validation and API communication, returning appropriate error messages.
 
+### route
+```php
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+Route::post('/summarize', [App\Http\Controllers\GeminiController::class, 'summarizeDocument']);
+```
+## Confiq setup
+ config/gemini.php:
+
+```php
+return [
+    'api_key' => env('GOOGLE_API_KEY', 'laravel'),
+];
+```
+## Update env 
+GOOGLE_API_KEY=your_key
+
+
 ##### Example of the summarizeDocument method:
 ```php
 use App\Http\Controllers\Controller;
@@ -48,3 +67,5 @@ public function summarizeDocument(Request $request)
         return response()->json(['error' => 'Failed to generate summary. ' . $e->getMessage()], 400);
     }
 }
+
+
