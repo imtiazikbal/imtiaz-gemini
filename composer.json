@@ -1,6 +1,10 @@
 {
     "name": "imtiaz/gemini",
+    "description": "A simple package for generating gemini links",
+    "type": "library",
     "license": "MIT",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "autoload": {
     "psr-4": {
         "Imtiaz\\LaravelGemini\\": "src/"
@@ -13,5 +17,9 @@
             "email": "imtiaz.ikbal.com@gmail.com"
         }
     ],
-    "require": {}
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^11.0"
+
+    }
 }
