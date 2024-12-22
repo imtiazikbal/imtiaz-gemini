@@ -17,6 +17,12 @@ This method handles the document summarization process:
 
 ##### Example of the summarizeDocument method:
 ```php
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Http;
+use Imtiaz\LaravelGemini\Gemini\GeminiApi;
+
 public function summarizeDocument(Request $request)
 {
     try {
