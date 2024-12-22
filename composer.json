@@ -1,0 +1,17 @@
+{
+    "name": "imtiaz/gemini",
+    "license": "MIT",
+    "autoload": {
+    "psr-4": {
+        "Imtiaz\\LaravelGemini\\": "src/"
+    }
+},
+
+    "authors": [
+        {
+            "name": "imtiazikbal",
+            "email": "imtiaz.ikbal.com@gmail.com"
+        }
+    ],
+    "require": {}
+}
