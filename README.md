@@ -54,12 +54,18 @@ GOOGLE_API_KEY=your_key
 
 ##### Example of the summarizeDocument method:
 ```php
-use App\Http\Controllers\Controller;
+<?php
+
+namespace App\Http\Controllers;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Http;
 use Imtiaz\LaravelGemini\Gemini\GeminiApi;
 
+class GeminiController extends Controller
+{
+    
 public function summarizeDocument(Request $request)
 {
     try {
@@ -85,5 +91,9 @@ public function summarizeDocument(Request $request)
         return response()->json(['error' => 'Failed to generate summary. ' . $e->getMessage()], 400);
     }
 }
+
+}
+```
+
 
 
