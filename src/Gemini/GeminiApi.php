@@ -6,6 +6,8 @@ use Illuminate\Support\ServiceProvider;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Request;
+
 
 class GeminiApi
 {
@@ -74,5 +76,77 @@ class GeminiApi
 
         return null;
     }
+
+      // Summarize the uploaded PDF file
+      public static function LargePDFsummarizeFile($filePath, $prompt)
+      {
+  
+          if (!Storage::exists($filePath)) {
+              return response()->json(['error' => 'File not found'], 404);
+          }
+  
+          // Get the file content from local storage
+          $fileContent = Storage::get($filePath);
+  
+          // Get the file's MIME type and size
+          $mimeType = 'application/pdf';
+          $numBytes = Storage::size($filePath);
+  
+          // Start resumable upload by defining metadata
+          $googleApiKey = env('GOOGLE_API_KEY');
+          $response = Http::withHeaders([
+              'X-Goog-Upload-Protocol' => 'resumable',
+              'X-Goog-Upload-Command' => 'start',
+              'X-Goog-Upload-Header-Content-Length' => $numBytes,
+              'X-Goog-Upload-Header-Content-Type' => $mimeType,
+              'Content-Type' => 'application/json',
+          ])
+          ->post("https://www.googleapis.com/upload/v1beta/files?key={$googleApiKey}", [
+              'file' => ['display_name' => pathinfo($filePath, PATHINFO_FILENAME)]
+          ]);
+  
+          // Parse the upload URL from the response headers
+          $uploadUrl = $response->header('X-Goog-Upload-Url');
+  
+          // Upload the file to Google Cloud Storage
+          $uploadResponse = Http::withHeaders([
+              'Content-Length' => $numBytes,
+              'X-Goog-Upload-Offset' => 0,
+              'X-Goog-Upload-Command' => 'upload, finalize',
+          ])
+          ->withBody($fileContent, $numBytes)
+          ->post($uploadUrl);
+  
+          // Get the file URI from the response
+          $fileInfo = $uploadResponse->json();
+          $fileUri = $fileInfo['file']['uri'];
+  
+          // Use the uploaded file to generate content using Google API
+          $response = Http::withHeaders([
+              'Content-Type' => 'application/json'
+          ])
+          ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={$googleApiKey}", [
+              'contents' => [
+                  [
+                      'parts' => [
+                          ['text' => $prompt],
+                          ['file_data' => [
+                              'mime_type' => $mimeType,
+                              'file_uri' => $fileUri
+                          ]],
+                      ]
+                  ]
+              ]
+          ]);
+  
+          // Parse and return the generated content
+          $responseData = $response->json();
+          $generatedContent = $responseData['candidates'][0]['content']['parts'][0]['text'];
+  
+          // Return the generated content as a response
+          return response()->json([
+              'generated_content' => $generatedContent,
+          ]);
+      }
 
 }

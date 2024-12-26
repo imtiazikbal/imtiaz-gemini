@@ -16,7 +16,7 @@ class GeminiController extends Controller
             // Validate that the file is one of the accepted types (excluding xlsx)
             $validator = Validator::make($request->all(), [
 
-                'file' => 'required|mimes:pdf,txt,html,css,csv,xml,rtf|max:10240', // max 10MB, excluding xlsx
+                'file' => 'required|mimes:pdf,txt,html,css,csv,xml,rtf|max:10240', // max 20MB, excluding xlsx
                 'prompt' => 'required|string'
             ]);
 
@@ -24,8 +24,18 @@ class GeminiController extends Controller
                 return response()->json(['errors' => $validator->errors()], 400);
             }
 
+             // Store the uploaded file locally
+        $file = $request->file('file');
+        $displayName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $filePath = $file->storeAs('uploads', $displayName . '.pdf'); // Store in storage/app/uploads/
+
+        // Return the file path to the user to allow summarization
+        return response()->json([
+            'message' => 'File uploaded successfully!',
+            'file_path' => $filePath,
+        ]);
+
             // Retrieve the uploaded file
-            $file = $request->file('file');
             $prompt = $request->input('prompt', 'Summarize this document');
 
             // Call the service to get the document summary
