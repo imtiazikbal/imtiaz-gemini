@@ -20,6 +20,32 @@ class GeminiApi
      */
     public static function summarizeDocument($file, $prompt)
     {
+
+        $fileSize = $file->getSize();
+
+        $fileSizeInMB = $fileSize / 1024 / 1024;  // Convert size to MB
+
+
+        $fileContents = $file;
+        $t = time();
+        $fileContentsName = $fileContents->getClientOriginalName();
+        $fileName = "news-{$t}-{$fileContentsName}";
+        $img_url = "uploads/files/{$fileName}";
+        // Upload File
+        $fileContents->move(public_path('uploads/news'), $fileName);
+        $file_path = public_path('uploads/files/' . $fileName);
+
+        // // Return the file path to the user to allow summarization
+        // return response()->json([
+        //     'message' => 'File uploaded successfully!',
+        //     'file_path' => asset($img_url),
+        // ]);
+
+        if ($fileSizeInMB > 19) {
+            return self::LargePDFsummarizeFile($file_path, $prompt);
+        }
+
+
         // Read the file content
         $fileData = file_get_contents($file->getRealPath());
         if (!$fileData) {
