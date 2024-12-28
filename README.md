@@ -1,4 +1,4 @@
-# Gemini Document Summarizer
+# Gemini Intregation for File
 
 This project is a Laravel-based solution to upload documents and generate summaries using the Gemini API. Users can upload documents (PDF, TXT, HTML, CSS, CSV, XML, RTF) and get summaries based on the provided prompt. The system stores user interactions and responses in the database for future reference.
 
@@ -6,55 +6,62 @@ This project is a Laravel-based solution to upload documents and generate summar
 
 Before you begin, ensure that you have the following installed:
 
-- [PHP >= 8.0](https://www.php.net/)
+- [PHP >= 8.2](https://www.php.net/)
 - [Composer](https://getcomposer.org/)
-- [Laravel 8.x or higher](https://laravel.com/)
+- [Laravel 11.x or higher](https://laravel.com/)
 - [MySQL](https://www.mysql.com/) or another supported database
 
 ## Installation
 
-1. **Clone the repository**
+1. **Install Gemini API package**
+
+    The project uses the Gemini API package by [imtiaz/gemini](https://github.com/imtiaz/gemini). Install it via Composer:
 
     ```bash
-    git clone https://github.com/your-repo-name.git
-    cd your-repo-name
+    composer require imtiaz/gemini
     ```
 
-2. **Install dependencies**
+3. **Create GOOGLE_API_KEY in  `.env` file**
 
-    Install the required PHP packages using Composer:
 
     ```bash
-    composer install
+    GOOGLE_API_KEY=your_api
     ```
 
-3. **Create `.env` file**
+4. **Create gemini.php in  congig **
+```
+<?php
 
-    Copy the `.env.example` file to `.env`:
+return [
 
-    ```bash
-    cp .env.example .env
-    ```
+    'api_key' => env('GOOGLE_API_KEY', 'laravel'),
 
-    Open the `.env` file and configure your database settings:
-
-    ```env
-    DB_CONNECTION=mysql
-    DB_HOST=127.0.0.1
-    DB_PORT=3306
-    DB_DATABASE=your_database_name
-    DB_USERNAME=your_database_username
-    DB_PASSWORD=your_database_password
-    ```
-
-4. **Generate application key**
+];
+```
+4. **Create model and migrations**
 
     Generate the application key:
 
     ```bash
-    php artisan key:generate
-    ```
-
+    php artisan make:model Chat -mc
+`
+5. Migrations file 
+```
+            $table->unsignedBigInteger('user_id');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->longText('prompt');
+            $table->longText('response');
+            $table->string('file_url');
+```
+6. Update model
+```
+ protected $fillable = [
+        'user_id',
+        'prompt',
+        'response',
+        'file_url'
+    ];
+```
 5. **Run the migrations**
 
     Create the necessary database tables by running:
@@ -63,24 +70,234 @@ Before you begin, ensure that you have the following installed:
     php artisan migrate
     ```
 
-6. **Install Gemini API package**
+7. **View file**
 
-    The project uses the Gemini API package by [imtiaz/gemini](https://github.com/imtiaz/gemini). Install it via Composer:
+```
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload with Prompt</title>
+    <style>
+        /* General Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
 
-    ```bash
-    composer require imtiaz/gemini
-    ```
+        body {
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding: 20px;
+        }
 
-7. **Start the server**
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
 
-    Finally, start the development server:
+        form {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+        }
 
-    ```bash
-    php artisan serve
-    ```
+        form div {
+            margin-bottom: 15px;
+        }
 
-    The application will be available at `http://localhost:8000`.
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
 
+        input[type="file"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="file"]:focus,
+        textarea:focus {
+            border-color: #007BFF;
+        }
+
+        textarea {
+            resize: none;
+            height: 100px;
+        }
+
+        button {
+            background: #007BFF;
+            color: white;
+            font-size: 16px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            form {
+                padding: 15px;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <form action="{{route('summarizeDocument')}}" method="POST" enctype="multipart/form-data">
+        <h1>Upload File with Prompt</h1>
+        @csrf <!-- Laravel's CSRF protection token -->
+        
+        <!-- File Input -->
+        <div>
+            <label for="file">Upload File (Allowed: PDF, TXT, HTML, CSS, CSV, XML, RTF | Max: 10MB)</label>
+            <input type="file" name="file" id="file" required accept=".pdf,.txt,.html,.css,.csv,.xml,.rtf">
+        </div>
+
+        <!-- Prompt Input -->
+        <div>
+            <label for="prompt">Prompt</label>
+            <textarea name="prompt" id="prompt" required placeholder="Enter your prompt here"></textarea>
+        </div>
+
+        <!-- Submit Button -->
+        <div>
+            <button type="submit">Submit</button>
+        </div>
+    </form>
+</body>
+</html>
+
+```
+8. # Controller
+   ```
+   <?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Http;
+use Imtiaz\LaravelGemini\Gemini\GeminiApi;
+use App\Models\Chat;
+
+
+class GeminiController extends Controller
+{
+
+    public function view(){
+        return view("gemini-file");
+    }
+    public function summarizeDocument(Request $request)
+    {
+
+        try {
+            
+            // Validate that the file is one of the accepted types (excluding xlsx)
+            $validator = Validator::make($request->all(), [
+                'file' => 'required|mimes:pdf,txt,html,css,csv,xml,rtf|max:10240', // max 20MB, excluding xlsx
+                'prompt' => 'required|string'
+            ]);
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 400);
+            }
+             // Store the uploaded file locally
+            $file = $request->file('file');
+            // Retrieve the uploaded file
+            $prompt = $request->input('prompt', 'Summarize this document');
+        
+            // Call the service to get the document summary
+            try {
+                $summary = GeminiApi::summarizeDocument($file, $prompt);
+                // Store the response
+                $this->storeResponse($summary, $prompt,'file_url',1);
+                $response   = [
+                    'status' => 'success',
+                    'data'=> $summary,
+                    'status_code' => 200
+                ];
+                return response()->json($response);
+            } catch (\Exception $e) {
+                return response()->json(['error' => 'Failed to generate summary. ' . $e->getMessage()], 400);
+            }
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    // get user documents and responses
+    public function documentsResponses(){
+        try {
+            $user_id = 1; // Replace with the authenticated user's ID 
+            $chats = Chat::where('user_id', $user_id)->get();
+            $response   = [
+                'status' => 'success',
+                'chats'=> $chats,
+                'status_code' => 200
+            ];
+            return response()->json($response);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
+    }
+    // store the respone in the database
+    private function storeResponse($data,$prompt,$file_url,$user_id){
+        try{
+            $chat = Chat::create([
+                'prompt' => $prompt,
+                'response' => $data,
+                'user_id'=> $user_id,
+                'file_url'=> $file_url
+            ]);
+        }catch(\Exception $e){
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
+
+    }
+
+}
+
+
+
+
+
+   ```
+
+   
 ---
 
 ## API Endpoints
