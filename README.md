@@ -202,7 +202,7 @@ return [
 
 ```
 8. # Controller
-   ```
+```
    <?php
 
 namespace App\Http\Controllers;
@@ -217,15 +217,12 @@ use App\Models\Chat;
 
 class GeminiController extends Controller
 {
-
     public function view(){
         return view("gemini-file");
     }
     public function summarizeDocument(Request $request)
     {
-
         try {
-            
             // Validate that the file is one of the accepted types (excluding xlsx)
             $validator = Validator::make($request->all(), [
                 'file' => 'required|mimes:pdf,txt,html,css,csv,xml,rtf|max:10240', // max 20MB, excluding xlsx
@@ -238,7 +235,6 @@ class GeminiController extends Controller
             $file = $request->file('file');
             // Retrieve the uploaded file
             $prompt = $request->input('prompt', 'Summarize this document');
-        
             // Call the service to get the document summary
             try {
                 $summary = GeminiApi::summarizeDocument($file, $prompt);
@@ -253,12 +249,10 @@ class GeminiController extends Controller
             } catch (\Exception $e) {
                 return response()->json(['error' => 'Failed to generate summary. ' . $e->getMessage()], 400);
             }
-
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         }
     }
-
     // get user documents and responses
     public function documentsResponses(){
         try {
@@ -286,16 +280,9 @@ class GeminiController extends Controller
         }catch(\Exception $e){
             return response()->json(['error' => $e->getMessage()], 400);
         }
-
     }
-
 }
-
-
-
-
-
-   ```
+```
 
    
 ---
@@ -349,21 +336,4 @@ The controller is responsible for handling the document upload, summarization, a
 - **documentsResponses()**: Retrieves all previous document interactions for a user.
 - **storeResponse($data, $prompt, $file_url, $user_id)**: Stores the summary and interaction data in the `chats` table.
 
-### **Chat Model**
 
-The `Chat` model represents the `chats` table where the data for user prompts, responses, and file URLs are stored.
-
-```php
-namespace App\Models;
-
-use Illuminate\Database\Eloquent\Model;
-
-class Chat extends Model
-{
-    protected $fillable = [
-        'user_id',
-        'prompt',
-        'response',
-        'file_url'
-    ];
-}
