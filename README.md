@@ -28,7 +28,7 @@ Before you begin, ensure that you have the following installed:
     GOOGLE_API_KEY=your_api
     ```
 
-4. **Create gemini.php in  congig **
+4. **Create `gemini.php` in  confiq **
 ```
 <?php
 
