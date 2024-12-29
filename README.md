@@ -26,6 +26,8 @@ Before you begin, ensure that you have the following installed:
 
     ```bash
     GOOGLE_API_KEY=your_api
+    API_BASE_URL=https://generativelanguage.googleapis.com
+
     ```
 
 4. **Create `gemini.php` in  confiq **
@@ -191,11 +193,12 @@ Route::get('/getUserDocumentsResponses',[App\Http\Controllers\api\GeminiControll
         <h1>Upload File with Prompt</h1>
         @csrf <!-- Laravel's CSRF protection token -->
         
-        <!-- File Input -->
-        <div>
-            <label for="file">Upload File (Allowed: PDF, TXT, HTML, CSS, CSV, XML, RTF | Max: 10MB)</label>
-            <input type="file" name="file" id="file" required accept=".pdf,.txt,.html,.css,.csv,.xml,.rtf">
-        </div>
+     <!-- File Input -->
+<div>
+    <label for="files">Upload Files (Allowed: PDF, TXT, HTML, CSS, CSV, XML, RTF | Max: 10MB each)</label>
+    <input type="file" name="files[]" id="files" required accept=".pdf,.txt,.html,.css,.csv,.xml,.rtf" multiple>
+</div>
+
 
         <!-- Prompt Input -->
         <div>
@@ -211,6 +214,7 @@ Route::get('/getUserDocumentsResponses',[App\Http\Controllers\api\GeminiControll
 </body>
 </html>
 
+
 ```
 8. # Controller
 ```
@@ -223,43 +227,67 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Http;
 use Imtiaz\LaravelGemini\Gemini\GeminiApi;
+use Imtiaz\LaravelGemini\Gemini\MultiPdfUpload;
+
 use App\Models\Chat;
 
 
 class GeminiController extends Controller
 {
+
     public function view(){
         return view("gemini-file");
     }
     public function summarizeDocument(Request $request)
     {
         try {
+            
             // Validate that the file is one of the accepted types (excluding xlsx)
             $validator = Validator::make($request->all(), [
-                'file' => 'required|mimes:pdf,txt,html,css,csv,xml,rtf|max:10240', // max 20MB, excluding xlsx
+                'files' => 'required|array', // Expect an array of files
+                'files.*' => 'required|mimes:pdf,txt,html,css,csv,xml,rtf|max:10240', // max 20MB, excluding xlsx
                 'prompt' => 'required|string'
             ]);
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 400);
             }
              // Store the uploaded file locally
-            $file = $request->file('file');
+            $files = $request->file('files');
             // Retrieve the uploaded file
             $prompt = $request->input('prompt', 'Summarize this document');
             // Call the service to get the document summary
             try {
-                $summary = GeminiApi::summarizeDocument($file, $prompt);
-                // Store the response
-                $this->storeResponse($summary, $prompt,'file_url',1);
-                $response   = [
+                if (count($files) === 1  ) {
+                     // Assuming $file is an array of uploaded files
+                $summary = GeminiApi::summarizeDocument($files[0], $prompt);
+                 // Store the response
+                 $this->storeResponse($summary, $prompt,'file_url',1);
+                 $response   = [
                     'status' => 'success',
                     'data'=> $summary,
                     'status_code' => 200
                 ];
                 return response()->json($response);
+
+                }else{
+                  $summary =  MultiPdfUpload::handleUpload($files, $prompt);
+            
+                   // Store the response
+                $this->storeResponse($summary->getOriginalContent(), $prompt,'file_url',1);
+                $response   = [
+                    'status' => 'success',
+                    'data'=> $summary->getOriginalContent(),
+                    'status_code' => 200
+                ];
+                return response()->json($response);
+
+                }
+               
+               
             } catch (\Exception $e) {
                 return response()->json(['error' => 'Failed to generate summary. ' . $e->getMessage()], 400);
             }
+
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         }
@@ -291,8 +319,15 @@ class GeminiController extends Controller
         }catch(\Exception $e){
             return response()->json(['error' => $e->getMessage()], 400);
         }
+
     }
+
 }
+
+
+
+
+
 ```
 
    
@@ -348,5 +383,3 @@ The controller is responsible for handling the document upload, summarization, a
 - **storeResponse($data, $prompt, $file_url, $user_id)**: Stores the summary and interaction data in the `chats` table.
 
 
-# imtiaz-gemini
-# imtiaz-gemini
