@@ -199,10 +199,29 @@ Route::get('/getUserDocumentsResponses',[App\Http\Controllers\api\GeminiControll
     <input type="file" name="files[]" id="files" required accept=".pdf,.txt,.html,.css,.csv,.xml,.rtf" multiple>
 </div>
 
+<div>
+    <label for="files">Specify Gemini Trained Models</label>
+    <a href="https://ai.google.dev/gemini-api/docs/models/gemini-models">Gemini Models</a>
+    <br>
+    <select name="model" id="models" class="form-control">
+        <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+        <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash</option>
+        <option value="gemini-exp-1206">Gemini</option>
+        <option value="learnlm-1.5-pro-experimental">LearnLM 1.5 Pro Experimental</option>
+        <option value="gemini-exp-1121">Gemini</option>
+        <option value="gemini-exp-1114">Gemini</option>
+        <option value="gemini-1.5-pro-exp-0827">Gemini 1.5 Pro</option>
+        <option value="gemini-1.5-pro-exp-0801">Gemini 1.5 Pro</option>
+        <option value="gemini-1.5-flash-8b-exp-0924">Gemini 1.5 Flash-8B</option>
+        <option value="gemini-1.5-flash-8b-exp-0827">Gemini 1.5 Flash-8B</option>
+    </select>
+</div>
+
 
         <!-- Prompt Input -->
         <div>
             <label for="prompt">Prompt</label>
+
             <textarea name="prompt" id="prompt" required placeholder="Enter your prompt here"></textarea>
         </div>
 
@@ -215,10 +234,11 @@ Route::get('/getUserDocumentsResponses',[App\Http\Controllers\api\GeminiControll
 </html>
 
 
+
 ```
 8. # Controller
 ```
-   <?php
+  <?php
 
 namespace App\Http\Controllers;
 
@@ -228,7 +248,6 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Http;
 use Imtiaz\LaravelGemini\Gemini\GeminiApi;
 use Imtiaz\LaravelGemini\Gemini\MultiPdfUpload;
-
 use App\Models\Chat;
 
 
@@ -246,7 +265,8 @@ class GeminiController extends Controller
             $validator = Validator::make($request->all(), [
                 'files' => 'required|array', // Expect an array of files
                 'files.*' => 'required|mimes:pdf,txt,html,css,csv,xml,rtf|max:10240', // max 20MB, excluding xlsx
-                'prompt' => 'required|string'
+                'prompt' => 'required|string',
+                'model' => 'nullable|string'
             ]);
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 400);
@@ -255,11 +275,12 @@ class GeminiController extends Controller
             $files = $request->file('files');
             // Retrieve the uploaded file
             $prompt = $request->input('prompt', 'Summarize this document');
+            $model = $request->input('model', 'gemini-1.5-flash');
             // Call the service to get the document summary
             try {
                 if (count($files) === 1  ) {
                      // Assuming $file is an array of uploaded files
-                $summary = GeminiApi::summarizeDocument($files[0], $prompt);
+                $summary = GeminiApi::summarizeDocument($files[0], $prompt,$model);
                  // Store the response
                  $this->storeResponse($summary, $prompt,'file_url',1);
                  $response   = [
@@ -270,7 +291,7 @@ class GeminiController extends Controller
                 return response()->json($response);
 
                 }else{
-                  $summary =  MultiPdfUpload::handleUpload($files, $prompt);
+                  $summary =  MultiPdfUpload::handleUpload($files, $prompt,$model);
             
                    // Store the response
                 $this->storeResponse($summary->getOriginalContent(), $prompt,'file_url',1);
@@ -292,6 +313,7 @@ class GeminiController extends Controller
             return response()->json(['error' => $e->getMessage()], 400);
         }
     }
+
     // get user documents and responses
     public function documentsResponses(){
         try {
@@ -323,6 +345,7 @@ class GeminiController extends Controller
     }
 
 }
+
 
 
 
