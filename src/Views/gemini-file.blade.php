@@ -105,11 +105,12 @@
         <h1>Upload File with Prompt</h1>
         @csrf <!-- Laravel's CSRF protection token -->
         
-        <!-- File Input -->
-        <div>
-            <label for="file">Upload File (Allowed: PDF, TXT, HTML, CSS, CSV, XML, RTF | Max: 10MB)</label>
-            <input type="file" name="file" id="file" required accept=".pdf,.txt,.html,.css,.csv,.xml,.rtf">
-        </div>
+     <!-- File Input -->
+<div>
+    <label for="files">Upload Files (Allowed: PDF, TXT, HTML, CSS, CSV, XML, RTF | Max: 10MB each)</label>
+    <input type="file" name="files[]" id="files" required accept=".pdf,.txt,.html,.css,.csv,.xml,.rtf" multiple>
+</div>
+
 
         <!-- Prompt Input -->
         <div>
