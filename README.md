@@ -348,3 +348,4 @@ The controller is responsible for handling the document upload, summarization, a
 - **storeResponse($data, $prompt, $file_url, $user_id)**: Stores the summary and interaction data in the `chats` table.
 
 
+# imtiaz-gemini
