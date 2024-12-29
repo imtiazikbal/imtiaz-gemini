@@ -75,12 +75,19 @@ return [
 7. Route example:
 
  ```
-   <?php
+<?php
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+
+
 Route::get('/view',[App\Http\Controllers\GeminiController::class, 'view']);
 Route::post('/summarizeDocument',action: [App\Http\Controllers\GeminiController::class, 'summarizeDocument'])->name('summarizeDocument');
 Route::get('/getUserDocumentsResponses',[App\Http\Controllers\GeminiController::class, 'documentsResponses']);
+Route::post('/uploadMultipleImages', [App\Http\Controllers\GeminiController::class, 'summarizeImages'])->name('uploadMultipleImages');
+ 
+
 
 ```
 7. **View file**
@@ -88,6 +95,7 @@ Route::get('/getUserDocumentsResponses',[App\Http\Controllers\GeminiController::
 ```
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -186,36 +194,86 @@ Route::get('/getUserDocumentsResponses',[App\Http\Controllers\GeminiController::
                 width: 100%;
             }
         }
+        .container {
+            display: flex;
+            gap: 20px;
+            
+        }
     </style>
 </head>
-<body>
-    <form action="{{route('summarizeDocument')}}" method="POST" enctype="multipart/form-data">
-        <h1>Upload File with Prompt</h1>
-        @csrf <!-- Laravel's CSRF protection token -->
-        
-     <!-- File Input -->
-<div>
-    <label for="files">Upload Files (Allowed: PDF, TXT, HTML, CSS, CSV, XML, RTF | Max: 10MB each)</label>
-    <input type="file" name="files[]" id="files" required accept=".pdf,.txt,.html,.css,.csv,.xml,.rtf" multiple>
-</div>
 
-<div>
-    <label for="files">Specify Gemini Trained Models</label>
-    <a href="https://ai.google.dev/gemini-api/docs/models/gemini-models">Gemini Models</a>
-    <br>
-    <select name="model" id="models" class="form-control">
-        <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
-        <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash</option>
-        <option value="gemini-exp-1206">Gemini</option>
-        <option value="learnlm-1.5-pro-experimental">LearnLM 1.5 Pro Experimental</option>
-        <option value="gemini-exp-1121">Gemini</option>
-        <option value="gemini-exp-1114">Gemini</option>
-        <option value="gemini-1.5-pro-exp-0827">Gemini 1.5 Pro</option>
-        <option value="gemini-1.5-pro-exp-0801">Gemini 1.5 Pro</option>
-        <option value="gemini-1.5-flash-8b-exp-0924">Gemini 1.5 Flash-8B</option>
-        <option value="gemini-1.5-flash-8b-exp-0827">Gemini 1.5 Flash-8B</option>
-    </select>
-</div>
+<body class="container">
+    <form action="{{ route('summarizeDocument') }}" method="POST" enctype="multipart/form-data">
+        <h1>Upload File with Prompt and Trained Model</h1>
+        @csrf <!-- Laravel's CSRF protection token -->
+
+        <!-- File Input -->
+        <div>
+            <label for="files">Upload Files (Allowed: PDF, TXT, HTML, CSS, CSV, XML, RTF | Max: 10MB each)</label>
+            <input type="file" name="files[]" id="files" required accept=".pdf,.txt,.html,.css,.csv,.xml,.rtf"
+                multiple>
+        </div>
+
+        <div>
+            <label for="files">Specify Gemini Trained Models</label>
+            <a href="https://ai.google.dev/gemini-api/docs/models/gemini-models">Gemini Models</a>
+            <br>
+            <select name="model" id="models" class="form-control">
+                <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash</option>
+                <option value="gemini-exp-1206">Gemini</option>
+                <option value="learnlm-1.5-pro-experimental">LearnLM 1.5 Pro Experimental</option>
+                <option value="gemini-exp-1121">Gemini</option>
+                <option value="gemini-exp-1114">Gemini</option>
+                <option value="gemini-1.5-pro-exp-0827">Gemini 1.5 Pro</option>
+                <option value="gemini-1.5-pro-exp-0801">Gemini 1.5 Pro</option>
+                <option value="gemini-1.5-flash-8b-exp-0924">Gemini 1.5 Flash-8B</option>
+                <option value="gemini-1.5-flash-8b-exp-0827">Gemini 1.5 Flash-8B</option>
+            </select>
+        </div>
+
+
+        <!-- Prompt Input -->
+        <div>
+            <label for="prompt">Prompt</label>
+
+            <textarea name="prompt" id="prompt" required placeholder="Enter your prompt here"></textarea>
+        </div>
+
+        <!-- Submit Button -->
+        <div>
+            <button type="submit">Submit</button>
+        </div>
+    </form>
+
+    <form action="{{ route('uploadMultipleImages') }}" method="POST" enctype="multipart/form-data">
+        <h1>Upload Images with Prompt and Trained Model</h1>
+
+
+        <!-- File Input -->
+        <div>
+            <label for="files">Upload Files (Allowed: JPEG, PNG, JPG, WebP, HEIC, HEIF | Max: 5MB each)</label>
+            <input type="file" name="images[]" id="files" required accept=".jpeg,.jpg,.png,.webp,.heic,.heif" multiple>
+        </div>
+        
+
+        <div>
+            <label for="files">Specify Gemini Trained Models</label>
+            <a href="https://ai.google.dev/gemini-api/docs/models/gemini-models">Gemini Models</a>
+            <br>
+            <select name="model" id="models" class="form-control">
+                <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash</option>
+                <option value="gemini-exp-1206">Gemini</option>
+                <option value="learnlm-1.5-pro-experimental">LearnLM 1.5 Pro Experimental</option>
+                <option value="gemini-exp-1121">Gemini</option>
+                <option value="gemini-exp-1114">Gemini</option>
+                <option value="gemini-1.5-pro-exp-0827">Gemini 1.5 Pro</option>
+                <option value="gemini-1.5-pro-exp-0801">Gemini 1.5 Pro</option>
+                <option value="gemini-1.5-flash-8b-exp-0924">Gemini 1.5 Flash-8B</option>
+                <option value="gemini-1.5-flash-8b-exp-0827">Gemini 1.5 Flash-8B</option>
+            </select>
+        </div>
 
 
         <!-- Prompt Input -->
@@ -231,9 +289,8 @@ Route::get('/getUserDocumentsResponses',[App\Http\Controllers\GeminiController::
         </div>
     </form>
 </body>
+
 </html>
-
-
 
 ```
 8. # Controller
@@ -248,8 +305,12 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Http;
 use Imtiaz\LaravelGemini\Gemini\GeminiApi;
 use Imtiaz\LaravelGemini\Gemini\MultiPdfUpload;
-use App\Models\Chat;
+use Imtiaz\LaravelGemini\Gemini\MultipleImage;
 
+
+use App\Models\Chat;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class GeminiController extends Controller
 {
@@ -290,7 +351,8 @@ class GeminiController extends Controller
                 ];
                 return response()->json($response);
 
-                }else{
+                }
+                else{
                   $summary =  MultiPdfUpload::handleUpload($files, $prompt,$model);
             
                    // Store the response
@@ -314,6 +376,7 @@ class GeminiController extends Controller
         }
     }
 
+
     // get user documents and responses
     public function documentsResponses(){
         try {
@@ -332,6 +395,7 @@ class GeminiController extends Controller
     // store the respone in the database
     private function storeResponse($data,$prompt,$file_url,$user_id){
         try{
+
             $chat = Chat::create([
                 'prompt' => $prompt,
                 'response' => $data,
@@ -343,7 +407,163 @@ class GeminiController extends Controller
         }
 
     }
+   
+    
+    public function summarizeImages(Request $request){
+        try {
+            
+            // Validate that the file is one of the accepted types (excluding xlsx)
+            $validator = Validator::make($request->all(), [
+                'images' => 'required|array', // Expect an array of files
+                'images.*' => 'required|file|image|mimes:jpeg,png,jpg,webp,heic,heif|max:5120', // Limit to 5MB per image
+                'prompt' => 'nullable|string',
+                'model' => 'nullable|string'
+            ]);
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 400);
+            }
+             // Store the uploaded file locally
+            $files = $request->file('images');
+            // Retrieve the uploaded file
+            $prompt = $request->input('prompt', 'Summarize this document');
+            $model = $request->input('model', 'gemini-1.5-flash');
+            // Call the service to get the document summary
+            try {
+                  $summary =  MultipleImage::handleImageUpload($files, $prompt,$model);
+            
+                   // Store the response
+                $this->storeResponse($summary->getOriginalContent(), $prompt,'file_url',1);
+                $response   = [
+                    'status' => 'success',
+                    'data'=> $summary->getOriginalContent(),
+                    'status_code' => 200
+                ];
+                return response()->json($response);
 
+                
+               
+               
+            } catch (\Exception $e) {
+                return response()->json(['error' => 'Failed to generate summary. ' . $e->getMessage()], 400);
+            }
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
+
+    }  
+
+
+    public function handleVideoUpload(Request $request)
+    {
+        // Validate uploaded video
+        $request->validate([
+            'video' => 'required|file|mimes:mp4,webm,mkv,avi|max:102400', // Limit to 100MB per video
+        ]);
+        
+        // Get the uploaded video file
+        $video = $request->file('video');
+        $videoPath = $video->getRealPath();
+        $fileName = $video->getClientOriginalName();
+        $mimeType = mime_content_type($videoPath);
+        $fileSize = filesize($videoPath);
+
+        // Define the Google API details
+        $googleApiKey = env('GOOGLE_API_KEY');
+        $baseUrl = env('GOOGLE_API_BASE_URL');
+        
+        // Step 1: Start the resumable upload request
+        $response = Http::withHeaders([
+            'X-Goog-Upload-Protocol' => 'resumable',
+            'X-Goog-Upload-Command' => 'start',
+            'X-Goog-Upload-Header-Content-Length' => $fileSize,
+            'X-Goog-Upload-Header-Content-Type' => $mimeType,
+            'Content-Type' => 'application/json',
+        ])
+        ->post("{$baseUrl}/upload/v1beta/files?key={$googleApiKey}", [
+            'file' => [
+                'display_name' => $fileName,
+            ],
+        ]);
+
+        // Parse the upload URL from the response headers
+        $uploadUrl = $response->header('X-Goog-Upload-Url');
+        
+        if (!$uploadUrl) {
+            return response()->json(['error' => 'Failed to initiate upload'], 500);
+        }
+
+        // Step 2: Upload the video to Google Cloud in chunks
+        $fileHandle = fopen($videoPath, 'rb');
+        $chunkSize = 5 * 1024 * 1024; // 5MB per chunk
+
+        $offset = 0;
+        while (!feof($fileHandle)) {
+            $chunk = fread($fileHandle, $chunkSize);
+            
+            $uploadResponse = Http::withHeaders([
+                'Content-Length' => strlen($chunk),
+                'X-Goog-Upload-Offset' => $offset,
+                'X-Goog-Upload-Command' => 'upload, finalize',
+            ])
+            ->withBody($chunk, 'application/octet-stream')
+            ->post($uploadUrl);
+            
+            // Increment the offset by the size of the chunk
+            $offset += strlen($chunk);
+
+            if ($uploadResponse->failed()) {
+                fclose($fileHandle);
+                return response()->json(['error' => 'Failed to upload video chunk'], 500);
+            }
+        }
+        fclose($fileHandle);
+
+        // Step 3: Check if the video processing is complete
+        $fileInfoResponse = Http::get("https://generativelanguage.googleapis.com/v1beta/files/{$fileName}?key={$googleApiKey}");
+        $fileInfo = $fileInfoResponse->json();
+        
+        $state = $fileInfo['file']['state'] ?? null;
+        while ($state == 'PROCESSING') {
+            Log::info('Processing video...');
+            sleep(5); // Wait for 5 seconds before checking the status again
+            
+            $fileInfoResponse = Http::get("https://generativelanguage.googleapis.com/v1beta/files/{$fileName}?key={$googleApiKey}");
+            $fileInfo = $fileInfoResponse->json();
+            $state = $fileInfo['file']['state'] ?? null;
+        }
+
+        // Step 4: Generate content based on the uploaded video
+        $fileUri = $fileInfo['file']['uri'] ?? null;
+
+        if (!$fileUri) {
+            return response()->json(['error' => 'Failed to get file URI for content generation'], 500);
+        }
+
+        $generateContentResponse = Http::withHeaders([
+            'Content-Type' => 'application/json',
+        ])
+        ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={$googleApiKey}", [
+            'contents' => [
+                [
+                    'parts' => [
+                        ['text' => 'Describe this video clip'],
+                        ['file_data' => ['mime_type' => $mimeType, 'file_uri' => $fileUri]],
+                    ],
+                ],
+            ],
+        ]);
+
+        // Step 5: Parse and return the generated content
+        $responseJson = $generateContentResponse->json();
+        $description = $responseJson['candidates'][0]['content']['parts'][0]['text'] ?? null;
+
+        if (!$description) {
+            return response()->json(['error' => 'Content generation failed'], 500);
+        }
+
+        return response()->json(['description' => $description]);
+    }
 }
 
 
