@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -98,36 +99,86 @@
                 width: 100%;
             }
         }
+        .container {
+            display: flex;
+            gap: 20px;
+            
+        }
     </style>
 </head>
-<body>
-    <form action="{{route('summarizeDocument')}}" method="POST" enctype="multipart/form-data">
-        <h1>Upload File with Prompt</h1>
-        @csrf <!-- Laravel's CSRF protection token -->
-        
-     <!-- File Input -->
-<div>
-    <label for="files">Upload Files (Allowed: PDF, TXT, HTML, CSS, CSV, XML, RTF | Max: 10MB each)</label>
-    <input type="file" name="files[]" id="files" required accept=".pdf,.txt,.html,.css,.csv,.xml,.rtf" multiple>
-</div>
 
-<div>
-    <label for="files">Specify Gemini Trained Models</label>
-    <a href="https://ai.google.dev/gemini-api/docs/models/gemini-models">Gemini Models</a>
-    <br>
-    <select name="model" id="models" class="form-control">
-        <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
-        <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash</option>
-        <option value="gemini-exp-1206">Gemini</option>
-        <option value="learnlm-1.5-pro-experimental">LearnLM 1.5 Pro Experimental</option>
-        <option value="gemini-exp-1121">Gemini</option>
-        <option value="gemini-exp-1114">Gemini</option>
-        <option value="gemini-1.5-pro-exp-0827">Gemini 1.5 Pro</option>
-        <option value="gemini-1.5-pro-exp-0801">Gemini 1.5 Pro</option>
-        <option value="gemini-1.5-flash-8b-exp-0924">Gemini 1.5 Flash-8B</option>
-        <option value="gemini-1.5-flash-8b-exp-0827">Gemini 1.5 Flash-8B</option>
-    </select>
-</div>
+<body class="container">
+    <form action="{{ route('summarizeDocument') }}" method="POST" enctype="multipart/form-data">
+        <h1>Upload File with Prompt and Trained Model</h1>
+        @csrf <!-- Laravel's CSRF protection token -->
+
+        <!-- File Input -->
+        <div>
+            <label for="files">Upload Files (Allowed: PDF, TXT, HTML, CSS, CSV, XML, RTF | Max: 10MB each)</label>
+            <input type="file" name="files[]" id="files" required accept=".pdf,.txt,.html,.css,.csv,.xml,.rtf"
+                multiple>
+        </div>
+
+        <div>
+            <label for="files">Specify Gemini Trained Models</label>
+            <a href="https://ai.google.dev/gemini-api/docs/models/gemini-models">Gemini Models</a>
+            <br>
+            <select name="model" id="models" class="form-control">
+                <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash</option>
+                <option value="gemini-exp-1206">Gemini</option>
+                <option value="learnlm-1.5-pro-experimental">LearnLM 1.5 Pro Experimental</option>
+                <option value="gemini-exp-1121">Gemini</option>
+                <option value="gemini-exp-1114">Gemini</option>
+                <option value="gemini-1.5-pro-exp-0827">Gemini 1.5 Pro</option>
+                <option value="gemini-1.5-pro-exp-0801">Gemini 1.5 Pro</option>
+                <option value="gemini-1.5-flash-8b-exp-0924">Gemini 1.5 Flash-8B</option>
+                <option value="gemini-1.5-flash-8b-exp-0827">Gemini 1.5 Flash-8B</option>
+            </select>
+        </div>
+
+
+        <!-- Prompt Input -->
+        <div>
+            <label for="prompt">Prompt</label>
+
+            <textarea name="prompt" id="prompt" required placeholder="Enter your prompt here"></textarea>
+        </div>
+
+        <!-- Submit Button -->
+        <div>
+            <button type="submit">Submit</button>
+        </div>
+    </form>
+
+    <form action="{{ route('uploadMultipleImages') }}" method="POST" enctype="multipart/form-data">
+        <h1>Upload Images with Prompt and Trained Model</h1>
+
+
+        <!-- File Input -->
+        <div>
+            <label for="files">Upload Files (Allowed: JPEG, PNG, JPG, WebP, HEIC, HEIF | Max: 5MB each)</label>
+            <input type="file" name="images[]" id="files" required accept=".jpeg,.jpg,.png,.webp,.heic,.heif" multiple>
+        </div>
+        
+
+        <div>
+            <label for="files">Specify Gemini Trained Models</label>
+            <a href="https://ai.google.dev/gemini-api/docs/models/gemini-models">Gemini Models</a>
+            <br>
+            <select name="model" id="models" class="form-control">
+                <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash</option>
+                <option value="gemini-exp-1206">Gemini</option>
+                <option value="learnlm-1.5-pro-experimental">LearnLM 1.5 Pro Experimental</option>
+                <option value="gemini-exp-1121">Gemini</option>
+                <option value="gemini-exp-1114">Gemini</option>
+                <option value="gemini-1.5-pro-exp-0827">Gemini 1.5 Pro</option>
+                <option value="gemini-1.5-pro-exp-0801">Gemini 1.5 Pro</option>
+                <option value="gemini-1.5-flash-8b-exp-0924">Gemini 1.5 Flash-8B</option>
+                <option value="gemini-1.5-flash-8b-exp-0827">Gemini 1.5 Flash-8B</option>
+            </select>
+        </div>
 
 
         <!-- Prompt Input -->
@@ -143,4 +194,5 @@
         </div>
     </form>
 </body>
+
 </html>
