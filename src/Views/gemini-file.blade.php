@@ -111,10 +111,29 @@
     <input type="file" name="files[]" id="files" required accept=".pdf,.txt,.html,.css,.csv,.xml,.rtf" multiple>
 </div>
 
+<div>
+    <label for="files">Specify Gemini Trained Models</label>
+    <a href="https://ai.google.dev/gemini-api/docs/models/gemini-models">Gemini Models</a>
+    <br>
+    <select name="model" id="models" class="form-control">
+        <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+        <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash</option>
+        <option value="gemini-exp-1206">Gemini</option>
+        <option value="learnlm-1.5-pro-experimental">LearnLM 1.5 Pro Experimental</option>
+        <option value="gemini-exp-1121">Gemini</option>
+        <option value="gemini-exp-1114">Gemini</option>
+        <option value="gemini-1.5-pro-exp-0827">Gemini 1.5 Pro</option>
+        <option value="gemini-1.5-pro-exp-0801">Gemini 1.5 Pro</option>
+        <option value="gemini-1.5-flash-8b-exp-0924">Gemini 1.5 Flash-8B</option>
+        <option value="gemini-1.5-flash-8b-exp-0827">Gemini 1.5 Flash-8B</option>
+    </select>
+</div>
+
 
         <!-- Prompt Input -->
         <div>
             <label for="prompt">Prompt</label>
+
             <textarea name="prompt" id="prompt" required placeholder="Enter your prompt here"></textarea>
         </div>
 

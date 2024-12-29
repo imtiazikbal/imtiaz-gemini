@@ -25,7 +25,8 @@ class GeminiController extends Controller
             $validator = Validator::make($request->all(), [
                 'files' => 'required|array', // Expect an array of files
                 'files.*' => 'required|mimes:pdf,txt,html,css,csv,xml,rtf|max:10240', // max 20MB, excluding xlsx
-                'prompt' => 'required|string'
+                'prompt' => 'required|string',
+                'model' => 'nullable|string'
             ]);
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 400);
@@ -34,11 +35,12 @@ class GeminiController extends Controller
             $files = $request->file('files');
             // Retrieve the uploaded file
             $prompt = $request->input('prompt', 'Summarize this document');
+            $model = $request->input('model', 'gemini-1.5-flash');
             // Call the service to get the document summary
             try {
                 if (count($files) === 1  ) {
                      // Assuming $file is an array of uploaded files
-                $summary = GeminiApi::summarizeDocument($files[0], $prompt);
+                $summary = GeminiApi::summarizeDocument($files[0], $prompt,$model);
                  // Store the response
                  $this->storeResponse($summary, $prompt,'file_url',1);
                  $response   = [
@@ -49,7 +51,7 @@ class GeminiController extends Controller
                 return response()->json($response);
 
                 }else{
-                  $summary =  MultiPdfUpload::handleUpload($files, $prompt);
+                  $summary =  MultiPdfUpload::handleUpload($files, $prompt,$model);
             
                    // Store the response
                 $this->storeResponse($summary->getOriginalContent(), $prompt,'file_url',1);
@@ -71,6 +73,7 @@ class GeminiController extends Controller
             return response()->json(['error' => $e->getMessage()], 400);
         }
     }
+
     // get user documents and responses
     public function documentsResponses(){
         try {

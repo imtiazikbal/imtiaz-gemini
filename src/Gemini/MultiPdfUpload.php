@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 class MultiPdfUpload
 {
 
-    public static function handleUpload($files, $prompt)
+    public static function handleUpload($files, $prompt, $model)
     {
         foreach ($files as $file) {
             // Check if the file is valid
@@ -57,7 +57,7 @@ class MultiPdfUpload
             }
 
             // Generate content based on all uploaded files
-            $response = self::generateContent($fileUris, $prompt);
+            $response = self::generateContent($fileUris, $prompt,$model);
 
             if (!$response) {
                 Log::error('Content generation failed.');
@@ -128,7 +128,7 @@ class MultiPdfUpload
         }
     }
 
-    private static function generateContent(array $fileUris, $prompt)
+    private static function generateContent(array $fileUris, $prompt,$model)
     {
         $baseUrl = env('API_BASE_URL');
         $apiKey = env('GOOGLE_API_KEY');
@@ -138,7 +138,7 @@ class MultiPdfUpload
             return ['file_data' => ['mime_type' => 'application/pdf', 'file_uri' => $fileUri]];
         }, $fileUris);
 
-        $response = Http::post("$baseUrl/v1beta/models/gemini-1.5-flash:generateContent?key=$apiKey", [
+        $response = Http::post("$baseUrl/v1beta/models/$model:generateContent?key=$apiKey", [
             'contents' => [
                 'parts' => array_merge($fileDataParts, [['text' => $prompt]]),
             ],
