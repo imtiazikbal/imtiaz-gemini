@@ -152,6 +152,7 @@
     </form>
 
     <form action="{{ route('uploadMultipleImages') }}" method="POST" enctype="multipart/form-data">
+       @csrf <!-- Laravel's CSRF protection token -->
         <h1>Upload Images with Prompt and Trained Model</h1>
 
 
