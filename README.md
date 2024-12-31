@@ -247,6 +247,7 @@ Route::post('/uploadMultipleImages', [App\Http\Controllers\GeminiController::cla
     </form>
 
     <form action="{{ route('uploadMultipleImages') }}" method="POST" enctype="multipart/form-data">
+        @csrf
         <h1>Upload Images with Prompt and Trained Model</h1>
 
 
@@ -291,6 +292,7 @@ Route::post('/uploadMultipleImages', [App\Http\Controllers\GeminiController::cla
 </body>
 
 </html>
+
 
 ```
 8. # Controller
