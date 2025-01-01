@@ -83,10 +83,15 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::get('/view',[App\Http\Controllers\GeminiController::class, 'view']);
-Route::post('/summarizeDocument',action: [App\Http\Controllers\GeminiController::class, 'summarizeDocument'])->name('summarizeDocument');
-Route::get('/getUserDocumentsResponses',[App\Http\Controllers\GeminiController::class, 'documentsResponses']);
+
+// single document
+Route::post('/summarizeSingleDocument',action: [App\Http\Controllers\GeminiController::class, 'summarizeDocument'])->name('summarizeDocument');
+// multiple pdf document 
+Route::post('/summarizeMultiplePdfDocument',action: [App\Http\Controllers\GeminiController::class, 'summarizeMultiplePdfDocument'])->name('summarizeDocument');
+// multiple images
 Route::post('/uploadMultipleImages', [App\Http\Controllers\GeminiController::class, 'summarizeImages'])->name('uploadMultipleImages');
- 
+Route::get('/getUserDocumentsResponses',[App\Http\Controllers\GeminiController::class, 'documentsResponses']);
+
 
 
 ```
@@ -297,7 +302,7 @@ Route::post('/uploadMultipleImages', [App\Http\Controllers\GeminiController::cla
 ```
 8. # Controller
 ```
-  <?php
+ <?php
 
 namespace App\Http\Controllers;
 
@@ -305,6 +310,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+
 use Imtiaz\LaravelGemini\Gemini\GeminiApi;
 use Imtiaz\LaravelGemini\Gemini\MultiPdfUpload;
 use Imtiaz\LaravelGemini\Gemini\MultipleImage;
@@ -312,7 +319,6 @@ use Imtiaz\LaravelGemini\Gemini\MultipleImage;
 
 use App\Models\Chat;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
 
 class GeminiController extends Controller
 {
@@ -320,43 +326,85 @@ class GeminiController extends Controller
     public function view(){
         return view("gemini-file");
     }
-    public function summarizeDocument(Request $request)
-    {
-        try {
-            
-            // Validate that the file is one of the accepted types (excluding xlsx)
-            $validator = Validator::make($request->all(), [
-                'files' => 'required|array', // Expect an array of files
-                'files.*' => 'required|mimes:pdf,txt,html,css,csv,xml,rtf|max:10240', // max 20MB, excluding xlsx
-                'prompt' => 'required|string',
-                'model' => 'nullable|string'
-            ]);
-            if ($validator->fails()) {
-                return response()->json(['errors' => $validator->errors()], 400);
-            }
-             // Store the uploaded file locally
-            $files = $request->file('files');
-            // Retrieve the uploaded file
-            $prompt = $request->input('prompt', 'Summarize this document');
-            $model = $request->input('model', 'gemini-1.5-flash');
-            // Call the service to get the document summary
-            try {
-                if (count($files) === 1  ) {
-                     // Assuming $file is an array of uploaded files
-                $summary = GeminiApi::summarizeDocument($files[0], $prompt,$model);
-                 // Store the response
-                 $this->storeResponse($summary, $prompt,'file_url',1);
-                 $response   = [
-                    'status' => 'success',
-                    'data'=> $summary,
-                    'status_code' => 200
-                ];
-                return response()->json($response);
+    public function summarizeSingleDocument(Request $request)
+{
+    try {
+        $validator = Validator::make($request->all(), [
+            'file' => 'required|mimes:pdf,txt,text/plain,html,css,csv,xml,rtf|max:10240',
+            'prompt' => 'required|string',
+            'model' => 'nullable|string'
+        ]);
 
-                }
-                else{
-                  $summary =  MultiPdfUpload::handleUpload($files, $prompt,$model);
-            
+        if ($validator->fails()) {
+            Log::error('Validation failed: ' . json_encode($validator->errors()));
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+
+        if (!$request->hasFile('file')) {
+            Log::error('No file was uploaded.');
+            return response()->json(['error' => 'No file was uploaded'], 400);
+        }
+
+        $file = $request->file('file');
+
+        if (!$file->isValid()) {
+            Log::error('Uploaded file is not valid: ' . $file->getErrorMessage());
+            return response()->json(['error' => 'Uploaded file is not valid'], 400);
+        }
+
+        Log::info('Uploaded file name: ' . $file->getClientOriginalName());
+        Log::info('Uploaded file size: ' . $file->getSize());
+        Log::info('Uploaded file MIME type: ' . $file->getMimeType());
+
+        $prompt = $request->input('prompt', 'Summarize this document');
+        $model = $request->input('model', 'gemini-1.5-flash');
+
+        try {
+            $summary = GeminiApi::summarizeDocument($file, $prompt, $model);
+
+            $this->storeResponse($summary, $prompt, 'file_url', 1);
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $summary,
+                'status_code' => 200
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error summarizing document: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to generate summary. ' . $e->getMessage()], 400);
+        }
+
+    } catch (\Exception $e) {
+        Log::error('General error: ' . $e->getMessage());
+        return response()->json(['error' => $e->getMessage()], 400);
+    }
+}
+
+
+
+//  summarize multiple documents
+public function summarizeMultiplePdfDocument(Request $request)
+{
+    try {
+        $validator = Validator::make($request->all(), [
+            'pdf' => 'required|array', // Expect an array of files
+            'pdf.*' => 'required|mimes:pdf|max:10240', // max 20MB, excluding xlsx
+            'prompt' => 'required|string',
+            'model' => 'nullable|string'
+        ]);
+
+        if ($validator->fails()) {
+            Log::error('Validation failed: ' . json_encode($validator->errors()));
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+        $file = $request->file('pdf');
+        $prompt = $request->input('prompt' );
+        $model = $request->input('model');
+
+        try {
+              $summary =  MultiPdfUpload::handleUpload($file, $prompt,$model);
+
                    // Store the response
                 $this->storeResponse($summary->getOriginalContent(), $prompt,'file_url',1);
                 $response   = [
@@ -365,19 +413,16 @@ class GeminiController extends Controller
                     'status_code' => 200
                 ];
                 return response()->json($response);
-
-                }
-               
-               
-            } catch (\Exception $e) {
-                return response()->json(['error' => 'Failed to generate summary. ' . $e->getMessage()], 400);
-            }
-
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 400);
+            Log::error('Error summarizing document: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to generate summary. ' . $e->getMessage()], 400);
         }
-    }
 
+    } catch (\Exception $e) {
+        Log::error('General error: ' . $e->getMessage());
+        return response()->json(['error' => $e->getMessage()], 400);
+    }
+}
 
     // get user documents and responses
     public function documentsResponses(){
@@ -427,8 +472,8 @@ class GeminiController extends Controller
              // Store the uploaded file locally
             $files = $request->file('images');
             // Retrieve the uploaded file
-            $prompt = $request->input('prompt', 'Summarize this document');
-            $model = $request->input('model', 'gemini-1.5-flash');
+            $prompt = $request->input('prompt');
+            $model = $request->input('model');
             // Call the service to get the document summary
             try {
                   $summary =  MultipleImage::handleImageUpload($files, $prompt,$model);
@@ -456,12 +501,15 @@ class GeminiController extends Controller
     }  
 
 
-    public function handleVideoUpload(Request $request)
+    public function handleVideoUploadForGemini(Request $request)
     {
+    
         // Validate uploaded video
         $request->validate([
             'video' => 'required|file|mimes:mp4,webm,mkv,avi|max:102400', // Limit to 100MB per video
         ]);
+
+       
         
         // Get the uploaded video file
         $video = $request->file('video');
@@ -566,8 +614,9 @@ class GeminiController extends Controller
 
         return response()->json(['description' => $description]);
     }
-}
 
+  
+}
 
 
 
