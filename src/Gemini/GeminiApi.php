@@ -11,13 +11,7 @@ use Illuminate\Support\Facades\Log;
 
 class GeminiApi
 {
-    /**
-     * Summarize the uploaded document.
-     *
-     * @param  \Illuminate\Http\UploadedFile  $file
-     * @param  string  $prompt
-     * @return string|null
-     */
+   
     public static function summarizeDocument($file, $prompt, $model)
     {
 

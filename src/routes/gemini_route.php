@@ -6,8 +6,11 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::get('/view',[App\Http\Controllers\GeminiController::class, 'view']);
-Route::post('/summarizeDocument',action: [App\Http\Controllers\GeminiController::class, 'summarizeDocument'])->name('summarizeDocument');
-Route::get('/getUserDocumentsResponses',[App\Http\Controllers\GeminiController::class, 'documentsResponses']);
-Route::post('/uploadMultipleImages', [App\Http\Controllers\GeminiController::class, 'summarizeImages'])->name('uploadMultipleImages');
- 
 
+// single document
+Route::post('/summarizeSingleDocument',action: [App\Http\Controllers\GeminiController::class, 'summarizeDocument'])->name('summarizeDocument');
+// multiple pdf document 
+Route::post('/summarizeMultiplePdfDocument',action: [App\Http\Controllers\GeminiController::class, 'summarizeMultiplePdfDocument'])->name('summarizeDocument');
+// multiple images
+Route::post('/uploadMultipleImages', [App\Http\Controllers\GeminiController::class, 'summarizeImages'])->name('uploadMultipleImages');
+Route::get('/getUserDocumentsResponses',[App\Http\Controllers\GeminiController::class, 'documentsResponses']);
